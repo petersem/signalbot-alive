@@ -1,0 +1,11 @@
+{
+  "name": "signalbot-alive",
+  "version": "0.0.1",
+  "description": "Basic bot for signal - uses the signal-api docker app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matt Petersen",
+  "license": "ISC"
+}
