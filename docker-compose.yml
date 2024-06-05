@@ -17,7 +17,7 @@ services:
       # the bot keyphrase
       KEY_PHRASE: '/alive'
       SIGNAL_SERVER: 'https://signal.yourdomain'
-      # include custom jokes /keyword joke from config/jokes.json
+      # include custom jokes /keyword joke from config/jokes.json.
       JOKES: 'true'
     volumes:
       - docker_path\signalbot:/usr/src/app/config
