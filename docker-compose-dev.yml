@@ -3,12 +3,12 @@ version: '3.4'
 services:
   signalbotalive:
     image: signalbotalive
+    container_name: signalbotalive
     build:
       context: .
       dockerfile: ./Dockerfile
     environment:
-      REGISTER_SIGNAL_NUMBER: '+000000000'
-      GROUP_ID: 'group.xyz.abc'
-      KEY_PHRASE: '/alive'
+
+
     ports:
       - 5432:3000
