@@ -7,8 +7,13 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
+      # The signal-api registered number for listening and sending
       REGISTER_SIGNAL_NUMBER: '+000000000'
-      GROUP_ID: 'group.xyz.abc'
+      # list one or more 'internal' group numbers for the groups you wish to monitor
+      # do a curl get command to your signal api container with the following parameters, to get group id's. (Using your signal registered number)
+      # https://signal.yourdomain.com/v1/groups/+611234567
+      GROUP_ID: '["group.xyz.abc", "group.stu.def"]'
+      # the bot keyphrase
       KEY_PHRASE: '/alive'
     ports:
       - 5432:3000

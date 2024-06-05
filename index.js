@@ -12,8 +12,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/status', function(req, res) {
-    const status = {'status': 'healthy'}
+app.get('/status', function (req, res) {
+    const status = { 'status': 'healthy' }
     res.setHeader('Content-Type', 'application/json');
     res.writeHead(200);
     res.end(JSON.stringify(status) + '\r\n');
@@ -48,85 +48,88 @@ console.log(" ");
 async function sendResponse(type, recipient, message) {
     // axios code here
     console.log('Sending: "' + type + '" response sent to: ' + recipient + '\r\n');
-    let jsonPayload = {"message": message, "number": REGISTER_SIGNAL_NUMBER, "recipients": [recipient], "text_mode": "styled"}
+    let jsonPayload = { "message": message, "number": REGISTER_SIGNAL_NUMBER, "recipients": [recipient], "text_mode": "styled" }
     await axios.post('https://signal.nesretep.net/v2/send', jsonPayload, {
         headers: {
-          // Overwrite Axios's automatically set Content-Type
-          'Content-Type': 'application/json'
+            // Overwrite Axios's automatically set Content-Type
+            'Content-Type': 'application/json'
         }
-      });
+    });
 }
 
 // load keywords and responses
-async function GetKeywordArray(){
+async function GetKeywordArray() {
     // check if file exists before downloading
     if (!fs.existsSync("/config/watchwords.json")) {
         const data = fs.readFileSync("config/watchwords.json", "utf-8");
-    
+
         try {
-          keyPhrases = await JSON.parse(data.toString());
+            keyPhrases = await JSON.parse(data.toString());
         } catch (ex) {
-          // do nothing if error as it reads ok anyhow
-          let d = new Date();
-          console.log(d.toLocaleString() + " *Failed to load keyPhrases:", ex);
+            // do nothing if error as it reads ok anyhow
+            let d = new Date();
+            console.log(d.toLocaleString() + " *Failed to load keyPhrases:", ex);
         }
-    
+
         //console.log(keyPhrases);
-      }
-      return keyPhrases;
+    }
+    return keyPhrases;
 }
 
 // init
-async function init(){
+async function init() {
     // load settings object
     keyPhrases = await GetKeywordArray();
-    
+    console.log('scanning for keywords');
     run();
 }
 
 // main program to watch for keywords
 async function watch() {
-    console.log('scanning for keywords');
     //signal.nesretep.net/v1/receive/+61413332329
     await axios.get('https://signal.nesretep.net/v1/receive/' + REGISTER_SIGNAL_NUMBER)
-    .then(function (response) {
-    if(response.data.length != 0){
-        //console.log(response.data[0]);
-        response.data.forEach(d => {
-            if(d.envelope.syncMessage != undefined && d.envelope.syncMessage.sentMessage != null){
-                let sourceName = d.envelope.sourceName;
-                let sourceNumber = d.envelope.sourceNumber;
-                let message = d.envelope.syncMessage.sentMessage.message;
-                let groupId = d.envelope.syncMessage.sentMessage.groupInfo.groupId;
-                // console.log(sourceName);
-                // console.log(sourceNumber);
-                // console.log(message);
-                // console.log(groupId);
-                // console.log(GROUP_ID);
-                if(message != undefined && message.length != 0 && message.toLowerCase().includes('/alive') && groupId == GROUP_ID){
-                    // console.log('found one');
-                    message = d.envelope.syncMessage.sentMessage.message.toLowerCase()
-                    const arr1 = keyPhrases.filter(d => d.searchTerm === message.substring(7));
-                    // console.log('arr1', arr1);
-                    if(arr1.length > 0){
-                        //console.log(arr1[0].msg);
-                        sendResponse(arr1[0].searchTerm,d.envelope.sourceNumber,arr1[0].msg);
-                    }
-                    else{
-                        console.log('/alive called, but not a valid keyword');
-                    }
-
-                } 
-            }
-        });
-        //console.log(response.data[0]);
-        // response.data.envelope.forEach(env => {
-        //     console.log(env);
+        .then(function (response) {
+            if (response.data.length != 0) {
                 
-        // });
+                response.data.forEach(d => {
+                    //console.log(d.envelope.syncMessage.editMessage);
+                    if (d.envelope.syncMessage != undefined && d.envelope.syncMessage.sentMessage != null) {
+                        if (d.envelope.syncMessage.sentMessage.groupInfo == undefined) {
+                            let sourceName = d.envelope.sourceName;
+                            let sourceNumber = d.envelope.sourceNumber;
+                            sendResponse('warning', d.envelope.sourceNumber, '**Warning**\n\nPlease do not:\n - Edit messages and send to the bot. Messages must be new\n - Do not send bot messages outside of groups\n\n*Thank you*\n\n*This is an automated message*');
+                        }
+                        else {
+                            let sourceName = d.envelope.sourceName;
+                            let sourceNumber = d.envelope.sourceNumber;
+                            let message = d.envelope.syncMessage.sentMessage.message;
+                            let groupId = d.envelope.syncMessage.sentMessage.groupInfo.groupId;
+                            if (message != undefined && message.length != 0 && message.toLowerCase().startsWith('/alive') && GROUP_ID.includes(groupId)) {
+                                // console.log('found one');
+                                message = d.envelope.syncMessage.sentMessage.message.toLowerCase()
+                                const arr1 = keyPhrases.filter(d => d.searchTerm === message.substring(7));
+                                // console.log('arr1', arr1);
+                                if (arr1.length > 0) {
+                                    //console.log(arr1[0].msg);
+                                    sendResponse(arr1[0].searchTerm, d.envelope.sourceNumber, arr1[0].msg);
+                                }
+                                else {
+                                    console.log('/alive called, but not a valid keyword');
+                                    sendResponse('help', d.envelope.sourceNumber, keyPhrases[0].msg);
+                                }
+                            }
 
-    }
-    })
+                        }
+                    }
+                });
+                //console.log(response.data[0]);
+                // response.data.envelope.forEach(env => {
+                //     console.log(env);
+
+                // });
+
+            }
+        })
     // .catch(function (error) {
     //     console.log("** Watch execption" + error);
     // });
