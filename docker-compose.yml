@@ -15,5 +15,6 @@ services:
       GROUP_ID: '["group.xyz.abc", "group.stu.def"]'
       # the bot keyphrase
       KEY_PHRASE: '/alive'
+      SIGNAL_SERVER: 'https://signal.yourdomain'
     ports:
       - 5432:3000

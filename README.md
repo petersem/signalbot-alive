@@ -1,2 +1,2 @@
-# signalbot-alive
+# signalbot
 basic signal bot 

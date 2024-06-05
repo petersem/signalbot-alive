@@ -25,6 +25,7 @@ app.listen(3000);
 const REGISTER_SIGNAL_NUMBER = process.env.REGISTER_SIGNAL_NUMBER || "";
 const GROUP_ID = process.env.GROUP_ID || "";
 const KEY_PHRASE = process.env.KEY_PHRASE || "";
+const SIGNAL_SERVER = process.env.SIGNAL_SERVER || "";
 
 // Default poll frequency
 const PERIOD = 3000;
@@ -34,7 +35,7 @@ let runClock;
 let keyPhrases = [];
 
 console.log("-------------------------------------------------------");
-console.log(" SignalBOT-Alive - Basic Signal BOT for ALIVE group");
+console.log(" SignalBOT - Basic Signal BOT for groups");
 console.log(" Developed by Matt Petersen - Brisbane Australia");
 console.log(" Donate: https://www.paypal.com/paypalme/thanksmp");
 console.log(" ");
@@ -49,7 +50,7 @@ async function sendResponse(type, recipient, message) {
     // axios code here
     console.log('Sending: "' + type + '" response sent to: ' + recipient + '\r\n');
     let jsonPayload = { "message": message, "number": REGISTER_SIGNAL_NUMBER, "recipients": [recipient], "text_mode": "styled" }
-    await axios.post('https://signal.nesretep.net/v2/send', jsonPayload, {
+    await axios.post(SIGNAL_SERVER + '/v2/send', jsonPayload, {
         headers: {
             // Overwrite Axios's automatically set Content-Type
             'Content-Type': 'application/json'
@@ -86,8 +87,7 @@ async function init() {
 
 // main program to watch for keywords
 async function watch() {
-    //signal.nesretep.net/v1/receive/+61413332329
-    await axios.get('https://signal.nesretep.net/v1/receive/' + REGISTER_SIGNAL_NUMBER)
+    await axios.get(SIGNAL_SERVER + '/v1/receive/' + REGISTER_SIGNAL_NUMBER)
         .then(function (response) {
             if (response.data.length != 0) {
                 
@@ -104,7 +104,7 @@ async function watch() {
                             let sourceNumber = d.envelope.sourceNumber;
                             let message = d.envelope.syncMessage.sentMessage.message;
                             let groupId = d.envelope.syncMessage.sentMessage.groupInfo.groupId;
-                            if (message != undefined && message.length != 0 && message.toLowerCase().startsWith('/alive') && GROUP_ID.includes(groupId)) {
+                            if (message != undefined && message.length != 0 && message.toLowerCase().startsWith(KEY_PHRASE.toLowerCase()) && GROUP_ID.includes(groupId)) {
                                 // console.log('found one');
                                 message = d.envelope.syncMessage.sentMessage.message.toLowerCase()
                                 const arr1 = keyPhrases.filter(d => d.searchTerm === message.substring(7));
@@ -114,7 +114,7 @@ async function watch() {
                                     sendResponse(arr1[0].searchTerm, d.envelope.sourceNumber, arr1[0].msg);
                                 }
                                 else {
-                                    console.log('/alive called, but not a valid keyword');
+                                    console.log(KEY_PHRASE.toLowerCase() + ' called, but not a valid keyword');
                                     sendResponse('help', d.envelope.sourceNumber, keyPhrases[0].msg);
                                 }
                             }
@@ -133,13 +133,6 @@ async function watch() {
     // .catch(function (error) {
     //     console.log("** Watch execption" + error);
     // });
-
-
-    // axios
-    // .get("https://finalspaceapi.com/api/v0/character/?limit=2")
-    // .then(function (response) {
-    //   console.log(response);
-    // });    
 
 }
 

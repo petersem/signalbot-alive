@@ -1,5 +1,5 @@
 {
-  "name": "signalbot-alive",
+  "name": "signalbot",
   "version": "0.2.0",
   "description": "Basic bot for signal - uses the signal-api docker app",
   "type": "module",
