@@ -8,7 +8,7 @@ services:
       dockerfile: ./Dockerfile
     environment:
       REGISTER_SIGNAL_NUMBER: '+000000000'
-      GROUP_OR_PERSON_ID: 'group.xyz.abc'
+      GROUP_ID: 'group.xyz.abc'
       KEY_PHRASE: '/alive'
     ports:
       - 5432:3000
