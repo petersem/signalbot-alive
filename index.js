@@ -92,30 +92,40 @@ async function watch() {
             if (response.data.length != 0) {
                 
                 response.data.forEach(d => {
-                    //console.log(d.envelope.syncMessage.editMessage);
-                    if (d.envelope.syncMessage != undefined && d.envelope.syncMessage.sentMessage != null) {
-                        if (d.envelope.syncMessage.sentMessage.groupInfo == undefined) {
+                    let customMessage = null;
+                    if(d.envelope.syncMessage != undefined && d.envelope.syncMessage.sentMessage != undefined){
+                        // sent by registered number
+                        customMessage = d.envelope.syncMessage.sentMessage;
+                    }
+                    else{
+                        // sent by someone else
+                        customMessage = d.envelope.dataMessage;
+                    }
+
+                    if (customMessage != null) {
+                        if (customMessage.groupInfo == undefined) {
                             let sourceName = d.envelope.sourceName;
-                            let sourceNumber = d.envelope.sourceNumber;
-                            sendResponse('warning', d.envelope.sourceNumber, '**Warning**\n\nPlease do not:\n - Edit messages and send to the bot. Messages must be new\n - Do not send bot messages outside of groups\n\n*Thank you*\n\n*This is an automated message*');
+                            let source = d.envelope.source;
+                            sendResponse('warning', source, '**Warning**\n\nPlease do not:\n - Edit messages and send to the bot. Messages must be new\n - Do not send bot messages outside of groups\n\n*Thank you*\n\n*This is an automated message*');
                         }
                         else {
                             let sourceName = d.envelope.sourceName;
-                            let sourceNumber = d.envelope.sourceNumber;
-                            let message = d.envelope.syncMessage.sentMessage.message;
-                            let groupId = d.envelope.syncMessage.sentMessage.groupInfo.groupId;
+                            let source = d.envelope.source;
+                            console.log(source);
+                            let message = customMessage.message;
+                            let groupId = customMessage.groupInfo.groupId;
                             if (message != undefined && message.length != 0 && message.toLowerCase().startsWith(KEY_PHRASE.toLowerCase()) && GROUP_ID.includes(groupId)) {
                                 // console.log('found one');
-                                message = d.envelope.syncMessage.sentMessage.message.toLowerCase()
+                                message = customMessage.message.toLowerCase()
                                 const arr1 = keyPhrases.filter(d => d.searchTerm === message.substring(7));
                                 // console.log('arr1', arr1);
                                 if (arr1.length > 0) {
                                     //console.log(arr1[0].msg);
-                                    sendResponse(arr1[0].searchTerm, d.envelope.sourceNumber, arr1[0].msg);
+                                    sendResponse(arr1[0].searchTerm, source, arr1[0].msg);
                                 }
                                 else {
                                     console.log(KEY_PHRASE.toLowerCase() + ' called, but not a valid keyword');
-                                    sendResponse('help', d.envelope.sourceNumber, keyPhrases[0].msg);
+                                    sendResponse('help', source, keyPhrases[0].msg);
                                 }
                             }
 

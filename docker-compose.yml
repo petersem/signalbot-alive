@@ -1,8 +1,9 @@
 version: '3.4'
 
 services:
-  signalbotalive:
-    image: signalbotalive
+  signalbot:
+    image: signalbot
+    container_name: signalbot
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -16,5 +17,9 @@ services:
       # the bot keyphrase
       KEY_PHRASE: '/alive'
       SIGNAL_SERVER: 'https://signal.yourdomain'
+      # include custom jokes /keyword joke from config/jokes.json
+      JOKES: 'true'
+    volumes:
+      - docker_path\signalbot:/usr/src/app/config
     ports:
       - 5432:3000
